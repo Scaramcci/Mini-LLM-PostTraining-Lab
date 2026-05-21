@@ -1,0 +1,11 @@
+[project]
+name = "mini-llm-posttraining-lab"
+version = "0.0.1"
+description = "A beginner-friendly long-term project for learning mini GPT pretraining and LLM post-training."
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
