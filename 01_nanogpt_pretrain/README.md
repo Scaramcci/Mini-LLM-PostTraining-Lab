@@ -2,6 +2,14 @@
 
 本阶段目标：从零训练一个很小的 GPT，理解 Transformer 和 causal language modeling 的基本流程。
 
+## Stage Plan
+
+详细学习顺序、训练安排、记录模板和验收问题见：
+
+```text
+stage01_plan.md
+```
+
 ## What To Learn
 
 - token embedding
