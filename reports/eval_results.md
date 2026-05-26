@@ -4,16 +4,21 @@
 
 ## Stage 01: nanoGPT
 
-| Experiment | Dataset | Device | Train Loss | Val Loss | Notes |
-| --- | --- | --- | ---: | ---: | --- |
-| exp-001 | tiny Shakespeare | TBD | TBD | TBD | smoke test |
+| Experiment | Dataset          | Device | Train Loss | Val Loss | Notes      |
+| ---------- | ---------------- | ------ | ---------: | -------: | ---------- |
+| exp-001    | tiny Shakespeare | TBD    |        TBD |      TBD | smoke test |
+
+```text
+Experiment | Dataset | Device | Train Loss | Val Loss | Notes
+```
+
 
 ## Later Stages
 
-| Stage | Model | Dataset | Main Metric | Result |
-| --- | --- | --- | --- | --- |
-| SFT | TBD | TBD | format accuracy | TBD |
-| DPO | TBD | TBD | preference win rate | TBD |
-| GRPO | TBD | TBD | average reward | TBD |
-| vLLM | TBD | TBD | latency / throughput | TBD |
-| Agent | TBD | TBD | pass@1 / pass@3 | TBD |
+| Stage | Model | Dataset | Main Metric          | Result |
+| ----- | ----- | ------- | -------------------- | ------ |
+| SFT   | TBD   | TBD     | format accuracy      | TBD    |
+| DPO   | TBD   | TBD     | preference win rate  | TBD    |
+| GRPO  | TBD   | TBD     | average reward       | TBD    |
+| vLLM  | TBD   | TBD     | latency / throughput | TBD    |
+| Agent | TBD   | TBD     | pass@1 / pass@3      | TBD    |
