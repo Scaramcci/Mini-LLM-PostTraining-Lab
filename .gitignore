@@ -35,6 +35,7 @@ data/processed/
 *.parquet
 *.arrow
 !data/samples/*.jsonl
+!02_tokenizer_and_data/data_examples/*.jsonl
 
 # Model weights and training outputs
 models/*

@@ -1,0 +1,3 @@
+{"id":"pref_001","prompt":"Use a tool to calculate: 17 * 23","chosen":"{\"tool\": \"calculator\", \"arguments\": {\"expression\": \"17 * 23\"}}","rejected":"The answer is 391."}
+{"id":"pref_002","prompt":"Use a tool to calculate: 99 - 37","chosen":"{\"tool\": \"calculator\", \"arguments\": {\"expression\": \"99 - 37\"}}","rejected":"{\"tool\": \"search_mock\", \"arguments\": {\"query\": \"99 - 37\"}}"}
+{"id":"pref_003","prompt":"Validate whether this text is JSON: [1, 2, 3]","chosen":"{\"tool\": \"json_validator\", \"arguments\": {\"text\": \"[1, 2, 3]\"}}","rejected":"Yes, it is valid JSON."}
