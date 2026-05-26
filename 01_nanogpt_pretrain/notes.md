@@ -6,6 +6,199 @@
 
 ## Reading Notes
 
+## model.py Reading
+
+### GPTConfig
+
+`GPTConfig` 是 GPT 模型的配置表，使用 `@dataclass` 定义。它不负责计算，只负责集中保存模型结构和训练相关的超参数。
+
+主要字段：
+
+- `block_size`: 模型一次最多能看的上下文长度，也就是最大 token 序列长度。
+- `vocab_size`: 词表大小，决定模型最后要在多少个 token 里预测下一个 token。
+- `n_layer`: Transformer Block 的层数。
+- `n_head`: self-attention 的 head 数量。
+- `n_embd`: 每个 token embedding 的向量维度，也是 Transformer 内部隐藏状态维度。
+- `dropout`: dropout 概率，用于正则化，减少过拟合。
+- `bias`: 是否在线性层和 LayerNorm 中使用 bias。
+
+可以把 `GPTConfig` 理解成模型的“设计图纸”。后面的 `GPT.__init__` 会根据这张图纸真正搭建网络。
+
+### GPT.__init__
+
+`GPT.__init__` 负责搭建完整 GPT 模型。它接收一个 `config`，然后根据配置创建 token embedding、position embedding、多层 Transformer Block、最终 LayerNorm 和语言模型输出头。
+
+核心结构在 `self.transformer` 里：
+
+- `wte`: token embedding，把 token id 变成向量。
+- `wpe`: position embedding，给每个位置一个可学习的位置向量。
+- `drop`: embedding 相加后的 dropout。
+- `h`: `n_layer` 个 `Block` 组成的列表，是模型主体。
+- `ln_f`: 所有 Block 之后的最终 LayerNorm。
+
+`self.lm_head` 是最后的语言模型头，把隐藏向量从 `n_embd` 维映射到 `vocab_size` 维。输出的每一维对应词表里一个 token 的分数。
+
+这里还有一个重要技巧：weight tying。
+
+```python
+self.transformer.wte.weight = self.lm_head.weight
+```
+
+这表示输入 token embedding 和输出 lm_head 共用同一套权重。直觉上，模型输入时需要理解每个 token 的向量表示，输出时也需要用 token 向量来判断下一个 token 是谁。共享权重可以减少参数量，也常常能提升语言模型效果。
+
+初始化部分做了两件事：
+
+- `self.apply(self._init_weights)`: 初始化 Linear 和 Embedding 权重。
+- 对所有 `c_proj.weight` 做特殊缩放初始化，参考 GPT-2 的做法，让深层 residual 结构训练更稳定。
+
+### GPT.forward
+
+`GPT.forward(idx, targets=None)` 是完整模型的前向传播。
+
+输入：
+
+- `idx`: token id 矩阵，形状是 `(batch_size, sequence_length)`。
+- `targets`: 训练目标，也是 token id 矩阵，形状通常和 `idx` 一样。
+
+主要步骤：
+
+1. 读取 `idx` 的形状，得到 batch 大小 `b` 和序列长度 `t`。
+2. 检查 `t <= block_size`，防止输入超过模型最大上下文长度。
+3. 创建位置索引 `pos = [0, 1, ..., t-1]`。
+4. 用 `wte(idx)` 得到 token embedding，形状是 `(b, t, n_embd)`。
+5. 用 `wpe(pos)` 得到 position embedding，形状是 `(t, n_embd)`。
+6. 把 token embedding 和 position embedding 相加，再做 dropout。
+7. 依次通过所有 Transformer Block。
+8. 经过最终 LayerNorm。
+9. 如果传入 `targets`，计算所有位置的 logits 和 cross entropy loss。
+10. 如果没有传入 `targets`，说明是推理生成，只计算最后一个位置的 logits。
+
+训练时：
+
+```python
+logits = self.lm_head(x)
+loss = F.cross_entropy(...)
+```
+
+推理时：
+
+```python
+logits = self.lm_head(x[:, [-1], :])
+loss = None
+```
+
+推理阶段只取最后一个位置，是因为生成下一个 token 时，只需要当前上下文最后位置的预测结果。
+
+### Block.forward
+
+`Block.forward(x)` 是一个 Transformer Block 的前向传播。
+
+代码非常短：
+
+```python
+x = x + self.attn(self.ln_1(x))
+x = x + self.mlp(self.ln_2(x))
+return x
+```
+
+它包含两段结构：
+
+1. `LayerNorm -> CausalSelfAttention -> Residual Add`
+2. `LayerNorm -> MLP -> Residual Add`
+
+这里使用的是 pre-LayerNorm，也就是先归一化，再送进 attention 或 MLP。残差连接 `x + ...` 的作用是保留原始信息，让每一层只需要学习“对当前表示做什么补充或修改”，从而让深层网络更容易训练。
+
+可以把 `Block` 理解成 GPT 主体里反复堆叠的基本单元。
+
+### CausalSelfAttention.forward
+
+`CausalSelfAttention.forward(x)` 负责计算因果自注意力。
+
+输入 `x` 的形状是：
+
+```text
+(B, T, C)
+```
+
+含义是：
+
+- `B`: batch size
+- `T`: sequence length
+- `C`: embedding dimension，也就是 `n_embd`
+
+第一步是通过一个线性层同时算出 q/k/v：
+
+```python
+q, k, v = self.c_attn(x).split(self.n_embd, dim=2)
+```
+
+`self.c_attn(x)` 的最后一维是 `3 * n_embd`，然后被切成三份，分别是 query、key、value。
+
+接着把 q/k/v reshape 成多头注意力需要的形状：
+
+```text
+(B, nh, T, hs)
+```
+
+其中：
+
+- `nh`: number of heads
+- `hs`: head size，也就是 `C // n_head`
+
+如果当前 PyTorch 支持 Flash Attention，就直接调用：
+
+```python
+scaled_dot_product_attention(..., is_causal=True)
+```
+
+这里的 `is_causal=True` 会自动处理 causal mask。
+
+如果不支持 Flash Attention，就走手写版本：
+
+```python
+att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+att = F.softmax(att, dim=-1)
+y = att @ v
+```
+
+这几行对应 scaled dot-product attention：
+
+```text
+softmax(QK^T / sqrt(d_k))V
+```
+
+其中 causal mask 会把未来位置填成 `-inf`，softmax 后这些位置的权重就变成 0，保证当前位置不能看到未来 token。
+
+最后把多个 head 的结果拼回 `(B, T, C)`，再经过输出投影 `c_proj` 和 dropout。
+
+### MLP.forward
+
+`MLP.forward(x)` 是 Transformer Block 里的前馈网络。
+
+流程是：
+
+```python
+x = self.c_fc(x)
+x = self.gelu(x)
+x = self.c_proj(x)
+x = self.dropout(x)
+return x
+```
+
+`c_fc` 会把维度从 `n_embd` 扩大到 `4 * n_embd`，`GELU` 提供非线性变换，`c_proj` 再把维度投回 `n_embd`。
+
+Attention 负责让不同 token 之间交换信息；MLP 则对每个 token 当前位置的表示做更深的非线性加工。它不直接混合不同位置的信息，但会增强每个位置内部的特征表达能力。
+
+### Variables
+
+- `idx`: 输入 token id，形状通常是 `(batch_size, block_size)` 或 `(B, T)`。它是模型真正读进去的文本数字化结果。
+- `targets`: 训练标签，形状通常和 `idx` 一样。`targets` 中每个位置是对应输入位置要预测的“下一个 token”。如果为 `None`，表示当前是推理生成，不计算 loss。
+- `logits`: 模型输出的未归一化分数。训练时形状通常是 `(B, T, vocab_size)`；推理时只保留最后一个位置，形状是 `(B, 1, vocab_size)`。logits 经过 softmax 后可以变成 token 概率分布。
+- `loss`: 训练时的 cross entropy loss，用来衡量模型预测和真实 `targets` 的差距。推理时没有 `targets`，所以 `loss = None`。
+- `q/k/v`: self-attention 中的 query、key、value。`q` 表示当前位置想找什么信息，`k` 表示每个位置能被怎样匹配，`v` 表示每个位置真正提供的内容。多头拆分后形状是 `(B, n_head, T, head_size)`。
+- `att`: attention 权重矩阵。手写 attention 路径中，`att` 的形状是 `(B, n_head, T, T)`，表示每个 head 里，每个 token 对上下文各位置的关注权重。causal mask 会让未来位置的权重变成 0。
+
 ## nanoGPT File Map
 
 ### README.md

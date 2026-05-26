@@ -4,21 +4,21 @@
 
 ## Stage 01: nanoGPT / Transformer
 
-- [ ] token
-- [ ] token embedding
-- [ ] position embedding
-- [ ] causal language modeling
-- [ ] next token prediction
-- [ ] attention
-- [ ] Q / K / V
+- [X] token
+- [X] token embedding
+- [X] position embedding
+- [X] causal language modeling
+- [X] next token prediction
+- [X] attention
+- [X] Q / K / V
 - [ ] scaled dot-product attention
-- [ ] causal mask
-- [ ] multi-head attention
-- [ ] residual connection
-- [ ] LayerNorm
-- [ ] MLP / FFN
-- [ ] cross entropy loss
-- [ ] train loss vs validation loss
+- [X] causal mask
+- [X] multi-head attention
+- [X] residual connection
+- [X] LayerNorm
+- [X] MLP / FFN
+- [X] cross entropy loss
+- [X] train loss vs validation loss
 - [ ] sampling temperature
 - [ ] top-k sampling
 
