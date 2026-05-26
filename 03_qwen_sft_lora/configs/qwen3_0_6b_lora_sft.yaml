@@ -1,0 +1,48 @@
+# Qwen3-0.6B LoRA SFT 配置
+# 用途：第一轮跑通验证，确认代码、数据、trainer 流程都能工作
+# 注意：这个配置文件是参考模板，实际使用时根据你的环境调整
+
+# === 模型 ===
+model_name_or_path: "Qwen/Qwen3-0.6B"
+
+# === 数据 ===
+# 使用 Stage 02 构造的 toy SFT 数据
+# 数据格式：jsonl，每条包含 messages 字段
+dataset_path: "../02_tokenizer_and_data/data_examples/sft_toy_10.jsonl"
+
+# === LoRA 配置 ===
+lora_r: 16              # LoRA rank，越大表达力越强，但显存越多
+lora_alpha: 32           # 通常设为 2 * lora_r
+lora_dropout: 0.05
+lora_target_modules:     # 对哪些层做 LoRA
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# === 训练参数 ===
+output_dir: "./results/qwen3_0_6b_sft"
+num_train_epochs: 3
+per_device_train_batch_size: 4
+gradient_accumulation_steps: 4
+learning_rate: 2.0e-4
+warmup_ratio: 0.03
+lr_scheduler_type: "cosine"
+max_seq_length: 512       # 先设短，节省显存
+logging_steps: 10
+save_steps: 100
+save_total_limit: 2
+eval_strategy: "steps"
+eval_steps: 50
+
+# === 精度 ===
+bf16: true               # 4090 支持 bf16
+fp16: false
+
+# === 其他 ===
+gradient_checkpointing: true  # 省显存
+seed: 42
+report_to: "none"        # 暂不上报 wandb
