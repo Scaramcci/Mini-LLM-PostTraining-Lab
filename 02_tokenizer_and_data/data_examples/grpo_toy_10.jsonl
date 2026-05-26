@@ -1,0 +1,3 @@
+{"id":"grpo_001","prompt":"Use a tool to calculate: 17 * 23","expected_tool":"calculator","expected_arguments":{"expression":"17 * 23"},"answer":"391"}
+{"id":"grpo_002","prompt":"Use a tool to calculate: 8 * (7 + 6)","expected_tool":"calculator","expected_arguments":{"expression":"8 * (7 + 6)"},"answer":"104"}
+{"id":"grpo_003","prompt":"Validate whether this text is JSON: [1, 2, 3]","expected_tool":"json_validator","expected_arguments":{"text":"[1, 2, 3]"}}

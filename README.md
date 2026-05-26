@@ -17,14 +17,15 @@
 
 ## Current Focus
 
-当前只推进到 Stage 01：
+当前推进到 Stage 02：
 
 ```text
-Stage 00: 项目初始化、日志、环境、GitHub 管理
-Stage 01: nanoGPT 预训练和 Transformer 基础
+Stage 00: 项目初始化、日志、环境、GitHub 管理，已完成主体文件
+Stage 01: nanoGPT 预训练和 Transformer 基础，已完成
+Stage 02: Tokenizer 和数据工程，当前阶段
 ```
 
-后续 Stage 02-08 的目录和文件会边学习边创建。
+后续 Stage 03-08 的目录和文件会边学习边创建。
 
 ## Project Structure
 
@@ -40,7 +41,8 @@ Stage 01: nanoGPT 预训练和 Transformer 基础
 │   ├── environment_setup.md
 │   ├── gpu_rental_notes.md
 │   └── reading_notes/
-│       └── transformer.md
+│       ├── transformer.md
+│       └── tokenizer.md
 ├── data/
 │   ├── README.md
 │   └── samples/
@@ -55,18 +57,26 @@ Stage 01: nanoGPT 预训练和 Transformer 基础
 │   ├── check_env.py
 │   ├── download_sample_data.py
 │   └── clean_outputs.py
-└── 01_nanogpt_pretrain/
+├── 01_nanogpt_pretrain/
+│   ├── README.md
+│   ├── notes.md
+│   ├── stage01_plan.md
+│   ├── configs/
+│   ├── scripts/
+│   └── results/
+└── 02_tokenizer_and_data/
     ├── README.md
     ├── notes.md
-    ├── configs/
+    ├── stage02_plan.md
     ├── scripts/
+    ├── data_examples/
     └── results/
 ```
 
 ## Progress
 
 - [ ] Stage 00: project setup
-- [ ] Stage 01: nanoGPT pretraining
+- [x] Stage 01: nanoGPT pretraining
 - [ ] Stage 02: tokenizer and data
 - [ ] Stage 03: Qwen SFT LoRA
 - [ ] Stage 04: DPO preference alignment
