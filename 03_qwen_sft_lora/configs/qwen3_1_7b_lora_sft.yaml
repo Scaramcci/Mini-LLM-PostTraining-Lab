@@ -1,0 +1,48 @@
+# Qwen3-1.7B LoRA SFT 配置
+# 用途：第二轮正式实验，记录正式结果
+# 注意：这个配置文件是参考模板，实际使用时根据你的环境调整
+
+# === 模型 ===
+model_name_or_path: "Qwen/Qwen3-1.7B"
+
+# === 数据 ===
+# 使用 Stage 02 构造的 toy SFT 数据（建议 200-1000 条）
+dataset_path: "../data/sft_toy/sft_train.jsonl"
+eval_dataset_path: "../data/sft_toy/sft_val.jsonl"
+
+# === LoRA 配置 ===
+lora_r: 32               # 正式实验可以用更大 rank
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target_modules:
+  - q_proj
+  - k_proj
+  - v_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+
+# === 训练参数 ===
+output_dir: "./results/qwen3_1_7b_sft"
+num_train_epochs: 3
+per_device_train_batch_size: 2
+gradient_accumulation_steps: 8
+learning_rate: 1.0e-4
+warmup_ratio: 0.03
+lr_scheduler_type: "cosine"
+max_seq_length: 1024
+logging_steps: 10
+save_steps: 200
+save_total_limit: 3
+eval_strategy: "steps"
+eval_steps: 100
+
+# === 精度 ===
+bf16: true
+fp16: false
+
+# === 其他 ===
+gradient_checkpointing: true
+seed: 42
+report_to: "none"
