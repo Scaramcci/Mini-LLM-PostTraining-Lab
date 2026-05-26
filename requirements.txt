@@ -1,0 +1,11 @@
+torch
+numpy
+matplotlib
+tqdm
+rich
+requests
+tiktoken
+transformers
+datasets
+accelerate
+jupyter

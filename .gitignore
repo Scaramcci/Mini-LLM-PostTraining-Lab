@@ -1,0 +1,59 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+
+# Hugging Face / model caches
+.cache/
+hf_cache/
+transformers_cache/
+
+# Data: keep README and tiny examples, ignore real datasets
+data/raw/
+data/processed/
+*.csv
+*.jsonl
+*.parquet
+*.arrow
+!data/samples/*.jsonl
+
+# Model weights and training outputs
+models/*
+!models/README.md
+checkpoints/
+outputs/
+runs/
+wandb/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+
+# Logs
+logs/
+*.log
+
+# nanoGPT local outputs
+01_nanogpt_pretrain/nanoGPT/
+01_nanogpt_pretrain/out*/
+01_nanogpt_pretrain/results/*.png
